@@ -3,6 +3,7 @@ const express = require('express');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 const User = require('./models/user');
+const session = require('express-session');
 
 //create app
 const app = express();
@@ -30,6 +31,19 @@ mongoose
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan('tiny'));
+app.use(
+	session({
+		secret: 'dookie',
+		resave: false,
+		saveUninitialized: false, // false to not store session in memory
+		cookie: { maxAge: 60 * 60 * 1000 },
+	})
+);
+
+app.use((req, res, next) => {
+	console.log(req.session);
+	next();
+});
 
 //set up routes
 app.get('/', (req, res) => {
