@@ -14,7 +14,7 @@ app.set('view engine', 'ejs');
 
 //connect to database
 mongoose
-	.connect('mongodb://localhost:27017/demos', {
+	.connect('mongodb://127.0.0.1:27017/demos', {
 		useNewUrlParser: true,
 		useUnifiedTopology: true,
 		useCreateIndex: true,
@@ -34,6 +34,19 @@ app.use(morgan('tiny'));
 //set up routes
 app.get('/', (req, res) => {
 	res.render('index');
+});
+
+// get the sign up form
+app.get('/new', (req, res) => {
+	res.render('new');
+});
+
+// create new user
+app.post('/', (req, res, next) => {
+	let user = new User(req.body);
+	user.save()
+		.then(() => res.redirect('/login'))
+		.catch((err) => next(err));
 });
 
 app.use((req, res, next) => {
