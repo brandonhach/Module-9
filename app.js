@@ -41,6 +41,41 @@ app.get('/new', (req, res) => {
 	res.render('new');
 });
 
+// get the login form
+app.get('/login', (req, res) => {
+	res.render('login');
+});
+
+// process login request
+app.post('/login', (req, res) => {
+	// authenticate user's login request
+	let email = req.body.email;
+	let password = req.body.password;
+
+	//get the user that matches the email
+	User.findOne({ email: email }).then((user) => {
+		if (user) {
+			//user found in the db
+			user.comparePassword(password).then((result) => {
+				if (result) {
+					res.redirect('/profile');
+				} else {
+					console.log('wrong password');
+					res.redirect('/login');
+				}
+			});
+		} else {
+			console.log('wrong email address');
+			res.redirect('/login');
+		}
+	});
+});
+
+// get profile
+app.get('/profile', (req, res) => {
+	res.render('profile');
+});
+
 // create new user
 app.post('/', (req, res, next) => {
 	let user = new User(req.body);
