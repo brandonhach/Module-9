@@ -98,7 +98,7 @@ app.get('/profile', (req, res) => {
 
 //logout the user
 app.get('/logout', (req, res, next) => {
-	req.session.destory((err) => {
+	req.session.destroy((err) => {
 		if (err) {
 			return next(err);
 		} else {
