@@ -5,6 +5,7 @@ const mongoose = require('mongoose');
 const User = require('./models/user');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
+const flash = require('connect-flash');
 
 //create app
 const app = express();
@@ -41,6 +42,7 @@ app.use(
 		store: new MongoStore({ mongoUrl: 'mongodb://127.0.0.1:27017/demos' }),
 	})
 );
+app.use(flash());
 
 app.use((req, res, next) => {
 	console.log(req.session);
@@ -67,7 +69,7 @@ app.post('/login', (req, res) => {
 	// authenticate user's login request
 	let email = req.body.email;
 	let password = req.body.password;
-
+	console.log(req.flash());
 	//get the user that matches the email
 	User.findOne({ email: email }).then((user) => {
 		if (user) {
@@ -75,14 +77,17 @@ app.post('/login', (req, res) => {
 			user.comparePassword(password).then((result) => {
 				if (result) {
 					req.session.user = user.id; // store user's id in the session
+					req.flash('success', 'You have successfully logged in');
 					res.redirect('/profile');
 				} else {
 					console.log('wrong password');
+					req.flash('error', 'Wrong password');
 					res.redirect('/login');
 				}
 			});
 		} else {
 			console.log('wrong email address');
+			req.flash('error', 'Wrong email');
 			res.redirect('/login');
 		}
 	});
@@ -91,6 +96,7 @@ app.post('/login', (req, res) => {
 // get profile
 app.get('/profile', (req, res) => {
 	let id = req.session.user;
+	console.log(req.flash());
 	User.findById(id)
 		.then((user) => res.render('profile', { user }))
 		.catch((err) => next(err));
