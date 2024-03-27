@@ -4,6 +4,7 @@ const morgan = require('morgan');
 const mongoose = require('mongoose');
 const User = require('./models/user');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 
 //create app
 const app = express();
@@ -37,6 +38,7 @@ app.use(
 		resave: false,
 		saveUninitialized: false, // false to not store session in memory
 		cookie: { maxAge: 60 * 60 * 1000 },
+		store: new MongoStore({ mongoUrl: 'mongodb://127.0.0.1:27017/demos' }),
 	})
 );
 
@@ -72,6 +74,7 @@ app.post('/login', (req, res) => {
 			//user found in the db
 			user.comparePassword(password).then((result) => {
 				if (result) {
+					req.session.user = user.id; // store user's id in the session
 					res.redirect('/profile');
 				} else {
 					console.log('wrong password');
@@ -87,7 +90,21 @@ app.post('/login', (req, res) => {
 
 // get profile
 app.get('/profile', (req, res) => {
-	res.render('profile');
+	let id = req.session.user;
+	User.findById(id)
+		.then((user) => res.render('profile', { user }))
+		.catch((err) => next(err));
+});
+
+//logout the user
+app.get('/logout', (req, res, next) => {
+	req.session.destory((err) => {
+		if (err) {
+			return next(err);
+		} else {
+			res.redirect('/');
+		}
+	});
 });
 
 // create new user
